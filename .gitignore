@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+data/*.xlsx
+~$*
+src/circuit_annotated.py
+claude.md
+src/circuit.py
