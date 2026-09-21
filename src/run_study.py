@@ -45,11 +45,12 @@ def main() -> None:
     sweep.to_csv(out_csv, index=False)
     print(f"{len(sweep)} rows -> {out_csv.name}\n")
 
-    print_summary(sweep)
+    thresholds = print_summary(sweep)
+    thresholds.to_csv(root / "data" / "thresholds.csv", index=False)
     print_sizing_curve(sweep)
 
 
-def print_summary(sweep: pd.DataFrame) -> None:
+def print_summary(sweep: pd.DataFrame) -> pd.DataFrame:
     """Worst hour within each run, then the spread across seeds, then thresholds."""
     per_run = (
         sweep.groupby(["scenario", "penetration_pct", "seed"])
@@ -67,12 +68,16 @@ def print_summary(sweep: pd.DataFrame) -> None:
     print(volt.round(4).to_string(), "\n")
 
     print(f"{'scenario':12s} {'thermal':>9s} {'voltage':>9s}")
+    rows = []
+    print(f"{'scenario':12s} {'thermal':>9s} {'voltage':>9s}")
     for sc in peak.columns:
         t = threshold_pct(peak[sc], 100.0, rising=True)
         v = threshold_pct(volt[sc], 0.95, rising=False)
+        rows.append({"scenario": sc, "thermal_pct": t, "voltage_pct": v})
         print(f"{sc:12s} {('%.1f%%' % t) if t else '  none':>9s} "
               f"{('%.1f%%' % v) if v else '  none':>9s}")
 
+    return pd.DataFrame(rows)
 
 def print_sizing_curve(sweep: pd.DataFrame) -> None:
     """What a battery would need to hold each penetration level.
